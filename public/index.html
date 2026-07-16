@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XROGA Build</title>
+<style>/* === RESET & VARIABLES === */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.5;
+      transition: background 0.3s, color 0.3s;
+    }
+    :root {
+      --bg: #0a0c10;
+      --bg-card: #12151a;
+      --bg-elevated: #1a1e26;
+      --bg-hover: #242a34;
+      --text-primary: #f0f2f5;
+      --text-secondary: #8b95a6;
+      --text-muted: #5a6577;
+      --accent: #6c5ce7;
+      --accent-hover: #7f6ff0;
+      --accent-glow: rgba(108, 92, 231, 0.15);
+      --green: #2ed573;
+      --red: #ff6b6b;
+      --border: #1e232c;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+    [data-theme="light"] {
+      --bg: #f4f6fa;
+      --bg-card: #ffffff;
+      --bg-elevated: #f0f2f6;
+      --bg-hover: #e6e9ef;
+      --text-primary: #0f1219;
+      --text-secondary: #4a5568;
+      --text-muted: #8a94a6;
+      --border: #dce0e8;
+      --shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; border: none; background: none; font-family: inherit; color: inherit; }
+    input, select { font-family: inherit; color: inherit; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem 0.75rem; outline: none; transition: border 0.2s; }
+    input:focus, select:focus { border-color: var(--accent); }
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b95a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.5rem center; padding-right: 2rem; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 4px; }
+
+    /* === NAV === */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 12, 16, 0.7);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    [data-theme="light"] .navbar { background: rgba(255,255,255,0.7); }
+    .nav-inner {
+      max-width: 1280px; margin: 0 auto; padding: 0.5rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .nav-left { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon { width: 22px; height: 22px; color: var(--accent); }
+    .logo-text { font-weight: 700; font-size: 1.2rem; letter-spacing: -0.02em; }
+    .nav-center { display: flex; gap: 0.25rem; }
+    .nav-link {
+      padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); font-size: 0.875rem;
+      font-weight: 500; color: var(--text-secondary); transition: all 0.2s;
+    }
+    .nav-link:hover { color: var(--text-primary); background: var(--bg-hover); }
+    .nav-link.active { color: var(--accent); background: var(--accent-glow); }
+    .nav-right { display: flex; align-items: center; gap: 0.5rem; }
+    .theme-btn {
+      padding: 0.4rem; border-radius: var(--radius-sm); color: var(--text-secondary);
+      transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+    }
+    .theme-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+    .wallet-btn {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 0.9rem; border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 500;
+      background: var(--accent); color: #fff; transition: background 0.2s;
+    }
+    .wallet-btn:hover { background: var(--accent-hover); }
+
+    /* === HERO === */
+    .hero {
+      position: relative; overflow: hidden;
+      padding: 3rem 1.5rem 2.5rem; max-width: 1280px; margin: 0 auto;
+      display: flex; flex-direction: column; gap: 2rem;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse 80% 60% at 20% 40%, rgba(108,92,231,0.08), transparent 70%),
+                  radial-gradient(ellipse 60% 50% at 80% 60%, rgba(46,213,115,0.05), transparent 60%);
+    }
+    .hero-content { position: relative; display: flex; flex-wrap: wrap; gap: 2rem; justify-content: space-between; align-items: center; }
+    .hero-text { flex: 1 1 320px; }
+    .hero-text h1 { font-size: 2.4rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 0.75rem; }
+    .hero-text p { color: var(--text-secondary); font-size: 1rem; margin-bottom: 1.5rem; max-width: 440px; }
+    .hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .btn-primary, .btn-secondary {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600;
+      transition: all 0.2s; border: none; cursor: pointer;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 0 20px var(--accent-glow); }
+    .btn-secondary { background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--bg-hover); }
+    .hero-stats { display: flex; gap: 1rem; flex: 0 1 auto; }
+    .hero-stat-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1.4rem; min-width: 160px; transition: background 0.2s;
+    }
+    .hero-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .hero-value { font-size: 1.4rem; font-weight: 700; display: block; margin: 0.25rem 0; }
+    .hero-change { font-size: 0.85rem; font-weight: 500; }
+    .hero-change.up { color: var(--green); }
+    .hero-change.down { color: var(--red); }
+
+    /* === DASHBOARD === */
+    .dashboard {
+      max-width: 1280px; margin: 0 auto; padding: 0 1.5rem 3rem;
+      display: flex; flex-direction: column; gap: 1.5rem;
+    }
+    .section-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .section-header h2 { font-size: 1.35rem; font-weight: 600; letter-spacing: -0.02em; }
+    .update-badge {
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 0.2rem 0.6rem; border-radius: 20px; background: var(--green); color: #0a0c10;
+    }
+
+    /* KPI GRID */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+    .kpi-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1.2rem; transition: background 0.2s, transform 0.15s;
+    }
+    .kpi-card:hover { background: var(--bg-hover); transform: translateY(-2px); }
+    .kpi-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+    .kpi-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
+    .kpi-icon { width: 18px; height: 18px; color: var(--text-muted); }
+    .kpi-value { font-size: 1.5rem; font-weight: 700; display: block; }
+    .kpi-change { font-size: 0.85rem; font-weight: 500; }
+    .kpi-change.up { color: var(--green); }
+    .kpi-change.down { color: var(--red); }
+
+    /* ROW */
+    .dashboard-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 820px) { .dashboard-row { grid-template-columns: 1fr; } }
+
+    /* CHART */
+    .chart-card, .wallet-stub-card, .swap-card, .stake-card, .tx-section {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.2rem; transition: background 0.2s;
+    }
+    .card-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; }
+    .card-header h3 { font-size: 1rem; font-weight: 600; }
+    .card-icon { width: 18px; height: 18px; color: var(--text-muted); }
+    .chart-toggle { display: flex; gap: 0.25rem; }
+    .chart-btn {
+      padding: 0.25rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 500;
+      background: var(--bg-elevated); color: var(--text-secondary); transition: all 0.2s; border: none; cursor: pointer;
+    }
+    .chart-btn.active { background: var(--accent); color: #fff; }
+    .chart-btn:hover:not(.active) { background: var(--bg-hover); }
+    #price-chart { width: 100%; height: auto; max-height: 240px; display: block; border-radius: var(--radius-sm); background: var(--bg-elevated); }
+
+    /* WALLET STUB */
+    .wallet-stub-card { min-width: 0; }
+    .wallet-stub-content { display: flex; flex-direction: column; gap: 0.6rem; }
+    .wallet-balance-row { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.2rem 0; }
+    .wallet-balance-row span:first-child { color: var(--text-secondary); }
+    .wallet-total { display: flex; justify-content: space-between; font-weight: 600; border-top: 1px solid var(--border); padding-top: 0.6rem; margin-top: 0.2rem; }
+    .small-btn {
+      display: flex; align-items: center; justify-content: center;
+      padding: 0.3rem; border-radius: var(--radius-sm); color: var(--text-secondary); transition: all 0.2s; border: none; cursor: pointer; background: transparent;
+    }
+    .small-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+    /* SWAP */
+    .swap-form { display: flex; flex-direction: column; gap: 0.75rem; }
+    .swap-input-group label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0.2rem; display: block; }
+    .swap-field { display: flex; gap: 0.4rem; }
+    .swap-field input { flex: 1; }
+    .swap-field select { width: 90px; }
+    .swap-switch { display: flex; justify-content: center; }
+    .swap-switch button { padding: 0.3rem 0.6rem; border-radius: var(--radius-sm); background: var(--bg-elevated); color: var(--text-secondary); transition: all 0.2s; border: none; cursor: pointer; }
+    .swap-switch button:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .swap-info { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); }
+    .swap-cta { width: 100%; justify-content: center; }
+
+    /* STAKE */
+    .stake-content { display: flex; flex-direction: column; gap: 0.8rem; }
+    .stake-apr { display: flex; justify-content: space-between; align-items: center; background: var(--accent-glow); padding: 0.5rem 0.8rem; border-radius: var(--radius-sm); }
+    .apr-value { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+    .stake-balance-row, .stake-rewards-row { display: flex; justify-content: space-between; font-size: 0.9rem; }
+    .stake-balance-row span:first-child, .stake-rewards-row span:first-child { color: var(--text-secondary); }
+    .stake-actions { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.3rem; }
+    .stake-actions input { width: 100%; }
+    .stake-btns { display: flex; gap: 0.5rem; }
+    .stake-btns .btn-primary, .stake-btns .btn-secondary { flex: 1; justify-content: center; }
+
+    /* TX TABLE */
+    .tx-section { overflow: hidden; }
+    .tx-table-wrapper { overflow-x: auto; }
+    .tx-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .tx-table th { text-align: left; padding: 0.5rem 0.6rem; color: var(--text-muted); font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .tx-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .tx-table tr:last-child td { border-bottom: none; }
+    .tx-status { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: 600; }
+    .tx-status.confirmed { background: rgba(46,213,115,0.15); color: var(--green); }
+    .tx-status.pending { background: rgba(255,165,0,0.15); color: #f1c40f; }
+    .tx-type { display: flex; align-items: center; gap: 0.3rem; }
+    .tx-type svg { width: 14px; height: 14px; }
+
+    /* FOOTER */
+    .footer { max-width: 1280px; margin: 0 auto; padding: 1rem 1.5rem 2rem; display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--border); }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(120%);
+      background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);
+      padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500;
+      box-shadow: var(--shadow); z-index: 200; transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .nav-inner { padding: 0.5rem 1rem; }
+      .nav-center { gap: 0; }
+      .nav-link { font-size: 0.75rem; padding: 0.3rem 0.5rem; }
+      .wallet-btn span { display: none; }
+      .hero-text h1 { font-size: 1.8rem; }
+      .hero-stats { flex-direction: column; width: 100%; }
+      .hero-stat-card { min-width: 0; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .dashboard { padding: 0 1rem 2rem; }
+      .section-header h2 { font-size: 1.1rem; }
+      .stake-btns { flex-direction: column; }
+    }
+    @media (max-width: 400px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }</style>
+</head>
+<body>
+l
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OrbitVault · Crypto Dashboard</title>
+  <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="navbar">
+    <div class="nav-inner">
+      <div class="nav-left">
+        <i data-lucide="orbit" class="logo-icon"></i>
+        <span class="logo-text">OrbitVault</span>
+      </div>
+      <div class="nav-center">
+        <a href="#dashboard" class="nav-link active">Dashboard</a>
+        <a href="#swap" class="nav-link">Swap</a>
+        <a href="#stake" class="nav-link">Stake</a>
+        <a href="#tx" class="nav-link">History</a>
+      </div>
+      <div class="nav-right">
+        <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">
+          <i data-lucide="moon"></i>
+        </button>
+        <button class="wallet-btn" id="wallet-btn">
+          <i data-lucide="wallet"></i>
+          <span>Connect</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO / WALLET CONNECT -->
+  <section class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-content">
+      <div class="hero-text">
+        <h1>Your cross-chain<br/>command centre</h1>
+        <p>Track portfolios, swap tokens, stake assets — all in one place.</p>
+        <div class="hero-actions">
+          <button class="btn-primary" id="hero-connect">
+            <i data-lucide="wallet"></i> Connect wallet
+          </button>
+          <button class="btn-secondary">
+            <i data-lucide="bar-chart-3"></i> Explore markets
+          </button>
+        </div>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat-card">
+          <span class="hero-label">BTC / USD</span>
+          <span class="hero-value" id="hero-btc-price">—</span>
+          <span class="hero-change" id="hero-btc-change">—</span>
+        </div>
+        <div class="hero-stat-card">
+          <span class="hero-label">ETH / USD</span>
+          <span class="hero-value" id="hero-eth-price">—</span>
+          <span class="hero-change" id="hero-eth-change">—</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section class="dashboard" id="dashboard">
+    <div class="section-header">
+      <h2>Live market overview</h2>
+      <span class="update-badge" id="update-badge">live</span>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="kpi-grid" id="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">BTC</span>
+          <i data-lucide="trending-up" class="kpi-icon"></i>
+        </div>
+        <span class="kpi-value" id="kpi-btc-price">—</span>
+        <span class="kpi-change" id="kpi-btc-change">—</span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">ETH</span>
+          <i data-lucide="trending-up" class="kpi-icon"></i>
+        </div>
+        <span class="kpi-value" id="kpi-eth-price">—</span>
+        <span class="kpi-change" id="kpi-eth-change">—</span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Total market cap</span>
+          <i data-lucide="globe" class="kpi-icon"></i>
+        </div>
+        <span class="kpi-value" id="kpi-total-mcap">—</span>
+        <span class="kpi-change" id="kpi-mcap-change">—</span>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">24h volume</span>
+          <i data-lucide="activity" class="kpi-icon"></i>
+        </div>
+        <span class="kpi-value" id="kpi-volume">—</span>
+        <span class="kpi-change" id="kpi-volume-change">—</span>
+      </div>
+    </div>
+
+    <!-- CHART + WALLET STUB ROW -->
+    <div class="dashboard-row">
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>7d price trend</h3>
+          <div class="chart-toggle">
+            <button class="chart-btn active" data-pair="btc">BTC</button>
+            <button class="chart-btn" data-pair="eth">ETH</button>
+          </div>
+        </div>
+        <canvas id="price-chart" width="600" height="240"></canvas>
+      </div>
+      <div class="wallet-stub-card">
+        <div class="card-header">
+          <h3>Wallet</h3>
+          <button class="small-btn" id="stub-refresh">
+            <i data-lucide="refresh-cw" width="14" height="14"></i>
+          </button>
+        </div>
+        <div class="wallet-stub-content" id="wallet-stub-content">
+          <div class="wallet-balance-row">
+            <span>BTC</span>
+            <span class="stub-balance" id="stub-btc-balance">0.0000</span>
+          </div>
+          <div class="wallet-balance-row">
+            <span>ETH</span>
+            <span class="stub-balance" id="stub-eth-balance">0.0000</span>
+          </div>
+          <div class="wallet-balance-row">
+            <span>USDC</span>
+            <span class="stub-balance" id="stub-usdc-balance">0.00</span>
+          </div>
+          <div class="wallet-total">
+            <span>Portfolio value</span>
+            <span id="stub-portfolio-value">$0.00</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SWAP + STAKE ROW -->
+    <div class="dashboard-row" id="swap">
+      <div class="swap-card">
+        <div class="card-header">
+          <h3>Swap</h3>
+          <i data-lucide="arrow-left-right" class="card-icon"></i>
+        </div>
+        <div class="swap-form">
+          <div class="swap-input-group">
+            <label>From</label>
+            <div class="swap-field">
+              <input type="number" id="swap-from-amount" value="0.1" step="0.01" min="0" />
+              <select id="swap-from-token">
+                <option value="BTC">BTC</option>
+                <option value="ETH">ETH</option>
+                <option value="USDC">USDC</option>
+              </select>
+            </div>
+          </div>
+          <div class="swap-switch">
+            <button id="swap-switch-btn" aria-label="Switch tokens">
+              <i data-lucide="chevrons-up-down"></i>
+            </button>
+          </div>
+          <div class="swap-input-group">
+            <label>To (estimated)</label>
+            <div class="swap-field">
+              <input type="text" id="swap-to-amount" readonly value="—" />
+              <select id="swap-to-token">
+                <option value="ETH">ETH</option>
+                <option value="BTC">BTC</option>
+                <option value="USDC">USDC</option>
+              </select>
+            </div>
+          </div>
+          <div class="swap-info">
+            <span>Rate: <span id="swap-rate">—</span></span>
+            <span>Fee: 0.3%</span>
+          </div>
+          <button class="btn-primary swap-cta" id="swap-execute">
+            <i data-lucide="zap"></i> Swap
+          </button>
+        </div>
+      </div>
+
+      <div class="stake-card" id="stake">
+        <div class="card-header">
+          <h3>Stake</h3>
+          <i data-lucide="banknote" class="card-icon"></i>
+        </div>
+        <div class="stake-content">
+          <div class="stake-apr">
+            <span>Current APR</span>
+            <span class="apr-value">7.2%</span>
+          </div>
+          <div class="stake-balance-row">
+            <span>Your stake</span>
+            <span id="stake-balance">0.0000 ETH</span>
+          </div>
+          <div class="stake-rewards-row">
+            <span>Rewards earned</span>
+            <span id="stake-rewards">0.0000 ETH</span>
+          </div>
+          <div class="stake-actions">
+            <input type="number" id="stake-amount" placeholder="Amount" value="0.01" step="0.001" min="0" />
+            <div class="stake-btns">
+              <button class="btn-primary" id="stake-deposit">
+                <i data-lucide="plus"></i> Stake
+              </button>
+              <button class="btn-secondary" id="stake-withdraw">
+                <i data-lucide="minus"></i> Unstake
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS TABLE -->
+    <div class="tx-section" id="tx">
+      <div class="card-header">
+        <h3>Recent transactions</h3>
+        <button class="small-btn" id="tx-refresh">
+          <i data-lucide="refresh-cw" width="14" height="14"></i>
+        </button>
+      </div>
+      <div class="tx-table-wrapper">
+        <table class="tx-table" id="tx-table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Asset</th>
+              <th>Amount</th>
+              <th>Value</th>
+              <th>Time</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tx-body">
+            <!-- injected by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <span>OrbitVault · Demo dashboard</span>
+    <span>Prices from CoinGecko</span>
+  </footer>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <style>
+    /* === RESET & VARIABLES === */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      line-height: 1.5;
+      transition: background 0.3s, color 0.3s;
+    }
+    :root {
+      --bg: #0a0c10;
+      --bg-card: #12151a;
+      --bg-elevated: #1a1e26;
+      --bg-hover: #242a34;
+      --text-primary: #f0f2f5;
+      --text-secondary: #8b95a6;
+      --text-muted: #5a6577;
+      --accent: #6c5ce7;
+      --accent-hover: #7f6ff0;
+      --accent-glow: rgba(108, 92, 231, 0.15);
+      --green: #2ed573;
+      --red: #ff6b6b;
+      --border: #1e232c;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 4px 24px rgba(0,0,0,0.4);
+    }
+    [data-theme="light"] {
+      --bg: #f4f6fa;
+      --bg-card: #ffffff;
+      --bg-elevated: #f0f2f6;
+      --bg-hover: #e6e9ef;
+      --text-primary: #0f1219;
+      --text-secondary: #4a5568;
+      --text-muted: #8a94a6;
+      --border: #dce0e8;
+      --shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; border: none; background: none; font-family: inherit; color: inherit; }
+    input, select { font-family: inherit; color: inherit; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem 0.75rem; outline: none; transition: border 0.2s; }
+    input:focus, select:focus { border-color: var(--accent); }
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b95a6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.5rem center; padding-right: 2rem; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 4px; }
+
+    /* === NAV === */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10, 12, 16, 0.7);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      transition: background 0.3s;
+    }
+    [data-theme="light"] .navbar { background: rgba(255,255,255,0.7); }
+    .nav-inner {
+      max-width: 1280px; margin: 0 auto; padding: 0.5rem 1.5rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    }
+    .nav-left { display: flex; align-items: center; gap: 0.5rem; }
+    .logo-icon { width: 22px; height: 22px; color: var(--accent); }
+    .logo-text { font-weight: 700; font-size: 1.2rem; letter-spacing: -0.02em; }
+    .nav-center { display: flex; gap: 0.25rem; }
+    .nav-link {
+      padding: 0.4rem 0.8rem; border-radius: var(--radius-sm); font-size: 0.875rem;
+      font-weight: 500; color: var(--text-secondary); transition: all 0.2s;
+    }
+    .nav-link:hover { color: var(--text-primary); background: var(--bg-hover); }
+    .nav-link.active { color: var(--accent); background: var(--accent-glow); }
+    .nav-right { display: flex; align-items: center; gap: 0.5rem; }
+    .theme-btn {
+      padding: 0.4rem; border-radius: var(--radius-sm); color: var(--text-secondary);
+      transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+    }
+    .theme-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
+    .wallet-btn {
+      display: flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 0.9rem; border-radius: var(--radius-sm); font-size: 0.875rem; font-weight: 500;
+      background: var(--accent); color: #fff; transition: background 0.2s;
+    }
+    .wallet-btn:hover { background: var(--accent-hover); }
+
+    /* === HERO === */
+    .hero {
+      position: relative; overflow: hidden;
+      padding: 3rem 1.5rem 2.5rem; max-width: 1280px; margin: 0 auto;
+      display: flex; flex-direction: column; gap: 2rem;
+    }
+    .hero-bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse 80% 60% at 20% 40%, rgba(108,92,231,0.08), transparent 70%),
+                  radial-gradient(ellipse 60% 50% at 80% 60%, rgba(46,213,115,0.05), transparent 60%);
+    }
+    .hero-content { position: relative; display: flex; flex-wrap: wrap; gap: 2rem; justify-content: space-between; align-items: center; }
+    .hero-text { flex: 1 1 320px; }
+    .hero-text h1 { font-size: 2.4rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.03em; margin-bottom: 0.75rem; }
+    .hero-text p { color: var(--text-secondary); font-size: 1rem; margin-bottom: 1.5rem; max-width: 440px; }
+    .hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+    .btn-primary, .btn-secondary {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600;
+      transition: all 0.2s; border: none; cursor: pointer;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 0 20px var(--accent-glow); }
+    .btn-secondary { background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--bg-hover); }
+    .hero-stats { display: flex; gap: 1rem; flex: 0 1 auto; }
+    .hero-stat-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1.4rem; min-width: 160px; transition: background 0.2s;
+    }
+    .hero-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .hero-value { font-size: 1.4rem; font-weight: 700; display: block; margin: 0.25rem 0; }
+    .hero-change { font-size: 0.85rem; font-weight: 500; }
+    .hero-change.up { color: var(--green); }
+    .hero-change.down { color: var(--red); }
+
+    /* === DASHBOARD === */
+    .dashboard {
+      max-width: 1280px; margin: 0 auto; padding: 0 1.5rem 3rem;
+      display: flex; flex-direction: column; gap: 1.5rem;
+    }
+    .section-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+    .section-header h2 { font-size: 1.35rem; font-weight: 600; letter-spacing: -0.02em; }
+    .update-badge {
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+      padding: 0.2rem 0.6rem; border-radius: 20px; background: var(--green); color: #0a0c10;
+    }
+
+    /* KPI GRID */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+    .kpi-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1.2rem; transition: background 0.2s, transform 0.15s;
+    }
+    .kpi-card:hover { background: var(--bg-hover); transform: translateY(-2px); }
+    .kpi-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem; }
+    .kpi-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 500; }
+    .kpi-icon { width: 18px; height: 18px; color: var(--text-muted); }
+    .kpi-value { font-size: 1.5rem; font-weight: 700; display: block; }
+    .kpi-change { font-size: 0.85rem; font-weight: 500; }
+    .kpi-change.up { color: var(--green); }
+    .kpi-change.down { color: var(--red); }
+
+    /* ROW */
+    .dashboard-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 820px) { .dashboard-row { grid-template-columns: 1fr; } }
+
+    /* CHART */
+    .chart-card, .wallet-stub-card, .swap-card, .stake-card, .tx-section {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.2rem; transition: background 0.2s;
+    }
+    .card-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 1rem; }
+    .card-header h3 { font-size: 1rem; font-weight: 600; }
+    .card-icon { width: 18px; height: 18px; color: var(--text-muted); }
+    .chart-toggle { display: flex; gap: 0.25rem; }
+    .chart-btn {
+      padding: 0.25rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 500;
+      background: var(--bg-elevated); color: var(--text-secondary); transition: all 0.2s; border: none; cursor: pointer;
+    }
+    .chart-btn.active { background: var(--accent); color: #fff; }
+    .chart-btn:hover:not(.active) { background: var(--bg-hover); }
+    #price-chart { width: 100%; height: auto; max-height: 240px; display: block; border-radius: var(--radius-sm); background: var(--bg-elevated); }
+
+    /* WALLET STUB */
+    .wallet-stub-card { min-width: 0; }
+    .wallet-stub-content { display: flex; flex-direction: column; gap: 0.6rem; }
+    .wallet-balance-row { display: flex; justify-content: space-between; font-size: 0.9rem; padding: 0.2rem 0; }
+    .wallet-balance-row span:first-child { color: var(--text-secondary); }
+    .wallet-total { display: flex; justify-content: space-between; font-weight: 600; border-top: 1px solid var(--border); padding-top: 0.6rem; margin-top: 0.2rem; }
+    .small-btn {
+      display: flex; align-items: center; justify-content: center;
+      padding: 0.3rem; border-radius: var(--radius-sm); color: var(--text-secondary); transition: all 0.2s; border: none; cursor: pointer; background: transparent;
+    }
+    .small-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+    /* SWAP */
+    .swap-form { display: flex; flex-direction: column; gap: 0.75rem; }
+    .swap-input-group label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; margin-bottom: 0.2rem; display: block; }
+    .swap-field { display: flex; gap: 0.4rem; }
+    .swap-field input { flex: 1; }
+    .swap-field select { width: 90px; }
+    .swap-switch { display: flex; justify-content: center; }
+    .swap-switch button { padding: 0.3rem 0.6rem; border-radius: var(--radius-sm); background: var(--bg-elevated); color: var(--text-secondary); transition: all 0.2s; border: none; cursor: pointer; }
+    .swap-switch button:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .swap-info { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); }
+    .swap-cta { width: 100%; justify-content: center; }
+
+    /* STAKE */
+    .stake-content { display: flex; flex-direction: column; gap: 0.8rem; }
+    .stake-apr { display: flex; justify-content: space-between; align-items: center; background: var(--accent-glow); padding: 0.5rem 0.8rem; border-radius: var(--radius-sm); }
+    .apr-value { font-size: 1.1rem; font-weight: 700; color: var(--accent); }
+    .stake-balance-row, .stake-rewards-row { display: flex; justify-content: space-between; font-size: 0.9rem; }
+    .stake-balance-row span:first-child, .stake-rewards-row span:first-child { color: var(--text-secondary); }
+    .stake-actions { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.3rem; }
+    .stake-actions input { width: 100%; }
+    .stake-btns { display: flex; gap: 0.5rem; }
+    .stake-btns .btn-primary, .stake-btns .btn-secondary { flex: 1; justify-content: center; }
+
+    /* TX TABLE */
+    .tx-section { overflow: hidden; }
+    .tx-table-wrapper { overflow-x: auto; }
+    .tx-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .tx-table th { text-align: left; padding: 0.5rem 0.6rem; color: var(--text-muted); font-weight: 500; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .tx-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+    .tx-table tr:last-child td { border-bottom: none; }
+    .tx-status { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: 600; }
+    .tx-status.confirmed { background: rgba(46,213,115,0.15); color: var(--green); }
+    .tx-status.pending { background: rgba(255,165,0,0.15); color: #f1c40f; }
+    .tx-type { display: flex; align-items: center; gap: 0.3rem; }
+    .tx-type svg { width: 14px; height: 14px; }
+
+    /* FOOTER */
+    .footer { max-width: 1280px; margin: 0 auto; padding: 1rem 1.5rem 2rem; display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--border); }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(120%);
+      background: var(--bg-elevated); color: var(--text-primary); border: 1px solid var(--border);
+      padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 500;
+      box-shadow: var(--shadow); z-index: 200; transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .nav-inner { padding: 0.5rem 1rem; }
+      .nav-center { gap: 0; }
+      .nav-link { font-size: 0.75rem; padding: 0.3rem 0.5rem; }
+      .wallet-btn span { display: none; }
+      .hero-text h1 { font-size: 1.8rem; }
+      .hero-stats { flex-direction: column; width: 100%; }
+      .hero-stat-card { min-width: 0; }
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .dashboard { padding: 0 1rem 2rem; }
+      .section-header h2 { font-size: 1.1rem; }
+      .stake-btns { flex-direction: column; }
+    }
+    @media (max-width: 400px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  <script>
+    (function() {
+      'use strict';
+
+      // --- state ---
+      const state = {
+        theme: 'dark',
+        prices: { btc: 0, eth: 0 },
+        changes: { btc: 0, eth: 0, mcap: 0, volume: 0, mcapChange: 0, volumeChange: 0 },
+        chartPair: 'btc',
+        chartHistory: { btc: [], eth: [] },
+        wallet: { btc: 0.4231, eth: 2.876, usdc: 1200.00 },
+        stakeBalance: 1.245,
+        stakeRewards: 0.0872,
+        connected: false,
+        swapRate: 0,
+        txs: [
+          { type: 'swap', asset: 'ETH → BTC', amount: '0.5 ETH', value: '$1,275', time: '2 min ago', status: 'confirmed' },
+          { type: 'stake', asset: 'ETH', amount: '0.25 ETH', value: '$637', time: '15 min ago', status: 'confirmed' },
+          { type: 'swap', asset: 'USDC → ETH', amount: '500 USDC', value: '$500', time: '1 hr ago', status: 'confirmed' },
+          { type: 'unstake', asset: 'ETH', amount: '0.1 ETH', value: '$255', time: '3 hr ago', status: 'pending' },
+        ]
+      };
+
+      // --- DOM refs ---
+      const $ = id => document.getElementById(id);
+      const heroBtcPrice = $('hero-btc-price');
+      const heroEthPrice = $('hero-eth-price');
+      const heroBtcChange = $('hero-btc-change');
+      const heroEthChange = $('hero-eth-change');
+      const kpiBtcPrice = $('kpi-btc-price');
+      const kpiEthPrice = $('kpi-eth-price');
+      const kpiBtcChange = $('kpi-btc-change');
+      const kpiEthChange = $('kpi-eth-change');
+      const kpiTotalMcap = $('kpi-total-mcap');
+      const kpiMcapChange = $('kpi-mcap-change');
+      const kpiVolume = $('kpi-volume');
+      const kpiVolumeChange = $('kpi-volume-change');
+      const chartCanvas = $('price-chart');
+      const swapFromAmount = $('swap-from-amount');
+      const swapToAmount = $('swap-to-amount');
+      const swapFromToken = $('swap-from-token');
+      const swapToToken = $('swap-to-token');
+      const swapRateEl = $('swap-rate');
+      const swapSwitchBtn = $('swap-switch-btn');
+      const swapExecute = $('swap-execute');
+      const stakeAmount = $('stake-amount');
+      const stakeBalanceEl = $('stake-balance');
+      const stakeRewardsEl = $('stake-rewards');
+      const stakeDeposit = $('stake-deposit');
+      const stakeWithdraw = $('stake-withdraw');
+      const stubBtcBalance = $('stub-btc-balance');
+      const stubEthBalance = $('stub-eth-balance');
+      const stubUsdcBalance = $('stub-usdc-balance');
+      const stubPortfolioValue = $('stub-portfolio-value');
+      const stubRefresh = $('stub-refresh');
+      const txBody = $('tx-body');
+      const txRefresh = $('tx-refresh');
+      const toast = $('toast');
+      const themeToggle = $('theme-toggle');
+      const heroConnect = $('hero-connect');
+      const walletBtn = $('wallet-btn');
+      const chartBtns = document.querySelectorAll('.chart-btn');
+
+      // --- helpers ---
+      function formatPrice(v, decimals = 2) {
+        if (v >= 1000) return '$' + v.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+        return '$' + v.toFixed(decimals);
+      }
+      function formatCompact(v) {
+        if (v >= 1e12) return '$' + (v / 1e12).toFixed(2) + 'T';
+        if (v >= 1e9) return '$' + (v / 1e9).toFixed(2) + 'B';
+        if (v >= 1e6) return '$' + (v / 1e6).toFixed(2) + 'M';
+        if (v >= 1e3) return '$' + (v / 1e3).toFixed(2) + 'K';
+        return '$' + v.toFixed(2);
+      }
+      function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2200);
+      }
+
+      // --- CoinGecko fetch ---
+      async function fetchPrices() {
+        try {
+          const resp = await fetch(
+            'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true',
+            { signal: AbortSignal.timeout(8000) }
+          );
+          if (!resp.ok) throw new Error('HTTP ' + resp.status);
+          const data = await resp.json();
+          const btc = data.bitcoin;
+          const eth = data.ethereum;
+          state.prices.btc = btc.usd;
+          state.prices.eth = eth.usd;
+          state.changes.btc = btc.usd_24h_change || 0;
+          state.changes.eth = eth.usd_24h_change || 0;
+
+          // fetch global data for mcap & volume
+          try {
+            const gresp = await fetch('https://api.coingecko.com/api/v3/global', { signal: AbortSignal.timeout(6000) });
+            if (gresp.ok) {
+              const g = await gresp.json();
+              const d = g.data;
+              state.changes.mcap = d.total_market_cap.usd || 0;
+              state.changes.volume = d.total_volume.usd || 0;
+              state.changes.mcapChange = d.market_cap_change_percentage_24h_usd || 0;
+              state.changes.volumeChange = 3.2; // fallback
+            }
+          } catch (_) { /* ignore */ }
+
+          updateUI();
+          updateChartHistory();
+          drawChart();
+        } catch (err) {
+          console.warn('CoinGecko fetch failed, using fallback data');
+          // fallback
+          state.prices.btc = 67420;
+          state.prices.eth = 3520;
+          state.changes.btc = 1.2;
+          state.changes.eth = -0.8;
+          state.changes.mcap = 2650000000000;
+          state.changes.volume = 82000000000;
+          state.changes.mcapChange = 0.9;
+          state.changes.volumeChange = 4.1;
+          updateUI();
+          updateChartHistory();
+          drawChart();
+        }
+      }
+
+      // --- generate chart history from current price + noise ---
+      function updateChartHistory() {
+        const now = Date.now();
+        const days = 7;
+        const points = 50;
+        const btcBase = state.prices.btc || 67000;
+        const ethBase = state.prices.eth || 3500;
+
+        const gen = (base, volatility) => {
+          const arr = [];
+          for (let i = points - 1; i >= 0; i--) {
+            const t = now - i * (days * 86400000 / points);
+            const noise = (Math.random() - 0.5) * base * volatility;
+            arr.push({ time: t, price: base + noise });
+          }
+          return arr;
+        };
+        state.chartHistory.btc = gen(btcBase, 0.04);
+        state.chartHistory.eth = gen(ethBase, 0.05);
+      }
+
+      // --- draw chart ---
+      function drawChart() {
+        const canvas = chartCanvas;
+        const ctx = canvas.getContext('2d');
+        const rect = canvas.parentElement.getBoundingClientRect();
+        const w = Math.min(rect.width - 2, 600);
+        const h = 240;
+        canvas.width = w * 2;
+        canvas.height = h * 2;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.scale(2, 2);
+
+        const data = state.chartHistory[state.chartPair] || [];
+        if (data.length < 2) return;
+
+        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+        const textColor = isDark ? '#8b95a6' : '#4a5568';
+        const gridColor = isDark ? '#1e232c' : '#dce0e8';
+        const lineColor = state.chartPair === 'btc' ? '#f7931a' : '#8a92f0';
+        const fillGrad = ctx.createLinearGradient(0, 0, 0, h);
+        fillGrad.addColorStop(0, lineColor + '30');
+        fillGrad.addColorStop(1, lineColor + '05');
+
+        const prices = data.map(d => d.price);
+        const min = Math.min(...prices) * 0.995;
+        const max = Math.max(...prices) * 1.005;
+        const padX = 8;
+        const padY = 12;
+        const chartW = w - padX * 2;
+        const chartH = h - padY * 2;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // grid
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 0.5;
+        ctx.setLineDash([2, 4]);
+        for (let i = 0; i <= 4; i++) {
+          const y = padY + (chartH / 4) * i;
+          ctx.beginPath();
+          ctx.moveTo(padX, y);
+          ctx.lineTo(w - padX, y);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // labels
+        ctx.fillStyle = textColor;
+        ctx.font = '9px Inter, sans-serif';
+        ctx.textAlign = 'right';
+        for (let i = 0; i <= 4; i++) {
+          const y = padY + (chartH / 4) * i;
+          const val = max - ((max - min) / 4) * i;
+          ctx.fillText('$' + val.toLocaleString('en-US', { maximumFractionDigits: 0 }), w - padX - 2, y + 3);
+        }
+
+        // line
+        const stepX = chartW / (data.length - 1);
+        ctx.beginPath();
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 2;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        data.forEach((d, i) => {
+          const x = padX + i * stepX;
+          const y = padY + (1 - (d.price - min) / (max - min)) * chartH;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+
+        // fill
+        ctx.lineTo(padX + (data.length - 1) * stepX, padY + chartH);
+        ctx.lineTo(padX, padY + chartH);
+        ctx.closePath();
+        ctx.fillStyle = fillGrad;
+        ctx.fill();
+
+        // dot on latest
+        const last = data[data.length - 1];
+        const lx = padX + (data.length - 1) * stepX;
+        const ly = padY + (1 - (last.price - min) / (max - min)) * chartH;
+        ctx.beginPath();
+        ctx.arc(lx, ly, 3, 0, Math.PI * 2);
+        ctx.fillStyle = lineColor;
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(lx, ly, 5, 0, Math.PI * 2);
+        ctx.fillStyle = lineColor + '20';
+        ctx.fill();
+      }
+
+      // --- update UI ---
+      function updateUI() {
+        const p = state.prices;
+        const c = state.changes;
+        heroBtcPrice.textContent = formatPrice(p.btc);
+        heroEthPrice.textContent = formatPrice(p.eth);
+        const fmtChange = (v, el) => { el.textContent = (v >= 0 ? '+' : '') + v.toFixed(2) + '%'; el.className = 'hero-change' + (v >= 0 ? ' up' : ' down'); };
+        fmtChange(c.btc, heroBtcChange);
+        fmtChange(c.eth, heroEthChange);
+
+        kpiBtcPrice.textContent = formatPrice(p.btc);
+        kpiEthPrice.textContent = formatPrice(p.eth);
+        const fmtKpi = (v, el) => { el.textContent = (v >= 0 ? '+' : '') + v.toFixed(2) + '%'; el.className = 'kpi-change' + (v >= 0 ? ' up' : ' down'); };
+        fmtKpi(c.btc, kpiBtcChange);
+        fmtKpi(c.eth, kpiEthChange);
+
+        kpiTotalMcap.textContent = formatCompact(c.mcap || 2650000000000);
+        fmtKpi(c.mcapChange || 0.9, kpiMcapChange);
+        kpiVolume.textContent = formatCompact(c.volume || 82000000000);
+        fmtKpi(c.volumeChange || 4.1, kpiVolumeChange);
+
+        // wallet stub
+        const w = state.wallet;
+        stubBtcBalance.textContent = w.btc.toFixed(4);
+        stubEthBalance.textContent = w.eth.toFixed(4);
+        stubUsdcBalance.textContent = w.usdc.toFixed(2);
+        const pv = w.btc * p.btc + w.eth * p.eth + w.usdc;
+        stubPortfolioValue.textContent = formatPrice(pv);
+
+        // stake
+        stakeBalanceEl.textContent = state.stakeBalance.toFixed(4) + ' ETH';
+        stakeRewardsEl.textContent = state.stakeRewards.toFixed(4) + ' ETH';
+
+        // swap rate
+        updateSwapRate();
+
+        // txs
+        renderTxs();
+      }
+
+      function updateSwapRate() {
+        const from = swapFromToken.value;
+        const to = swapToToken.value;
+        const btc = state.prices.btc || 67000;
+        const eth = state.prices.eth || 3500;
+        const usdc = 1;
+        const rates = { BTC: btc, ETH: eth, USDC: usdc };
+        const rate = rates[from] / rates[to];
+        state.swapRate = rate || 0;
+        swapRateEl.textContent = rate ? `1 ${from} = ${rate.toFixed(6)} ${to}` : '—';
+        computeSwapTo();
+      }
+
+      function computeSwapTo() {
+        const fromAmt = parseFloat(swapFromAmount.value) || 0;
+        const rate = state.swapRate || 0;
+        swapToAmount.value = rate ? (fromAmt * rate).toFixed(6) : '—';
+      }
+
+      function renderTxs() {
+        txBody.innerHTML = '';
+        state.txs.forEach(tx => {
+          const tr = document.createElement('tr');
+          const iconHtml = tx.type === 'swap' ? '<i data-lucide="arrow-left-right" width="14" height="14"></i>' :
+                          tx.type === 'stake' ? '<i data-lucide="plus" width="14" height="14"></i>' :
+                          '<i data-lucide="minus" width="14" height="14"></i>';
+          tr.innerHTML = `
+            <td><span class="tx-type">${iconHtml} ${tx.type}</span></td>
+            <td>${tx.asset}</td>
+            <td>${tx.amount}</td>
+            <td>${tx.value}</td>
+            <td>${tx.time}</td>
+            <td><span class="tx-status ${tx.status}">${tx.status}</span></td>
+          `;
+          txBody.appendChild(tr);
+        });
+        lucide.createIcons({ root: txBody });
+      }
+
+      // --- connect wallet ---
+      function connectWallet() {
+        state.connected = true;
+        heroConnect.innerHTML = '<i data-lucide="check-circle"></i> Connected';
+        walletBtn.innerHTML = '<i data-lucide="wallet"></i><span>0x7F...3aB1</span>';
+        heroConnect.disabled = true;
+        lucide.createIcons({ root: heroConnect });
+        lucide.createIcons({ root: walletBtn });
+        showToast('Wallet connected (demo)');
+      }
+
+      // --- theme ---
+      function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        state.theme = next;
+        localStorage.setItem('xroga-dash-theme', next);
+        const icon = themeToggle.querySelector('i');
+        icon.setAttribute('data-lucide', next === 'dark' ? 'moon' : 'sun');
+        lucide.createIcons({ root: themeToggle });
+        setTimeout(drawChart, 50);
+      }
+
+      // --- init ---
+      function initTheme() {
+        const saved = localStorage.getItem('xroga-dash-theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', saved);
+        state.theme = saved;
+        const icon = themeToggle.querySelector('i');
+        icon.setAttribute('data-lucide', saved === 'dark' ? 'moon' : 'sun');
+        lucide.createIcons({ root: themeToggle });
+      }
+
+      function initNavScroll() {
+        const links = document.querySelectorAll('.nav-link');
+        const sections = ['dashboard', 'swap', 'stake', 'tx'];
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              links.forEach(l => l.classList.remove('active'));
+              const match = [...links].find(l => l.getAttribute('href') === '#' + e.target.id);
+              if (match) match.classList.add('active');
+            }
+          });
+        }, { rootMargin: '-80px 0px -50% 0px' });
+        sections.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) observer.observe(el);
+        });
+      }
+
+      // --- event bindings ---
+      themeToggle.addEventListener('click', toggleTheme);
+      heroConnect.addEventListener('click', connectWallet);
+      walletBtn.addEventListener('click', connectWallet);
+
+      swapFromAmount.addEventListener('input', computeSwapTo);
+      swapFromToken.addEventListener('change', updateSwapRate);
+      swapToToken.addEventListener('change', updateSwapRate);
+
+      swapSwitchBtn.addEventListener('click', () => {
+        const from = swapFromToken.value;
+        const to = swapToToken.value;
+        swapFromToken.value = to;
+        swapToToken.value = from;
+        updateSwapRate();
+      });
+
+      swapExecute.addEventListener('click', () => {
+        const from = swapFromAmount.value;
+        if (!from || parseFloat(from) <= 0) { showToast('Enter a valid amount'); return; }
+        showToast(`Swapped ${from} ${swapFromToken.value} → ${swapToAmount.value} ${swapToToken.value} (demo)`);
+        state.txs.unshift({
+          type: 'swap', asset: `${swapFromToken.value} → ${swapToToken.value}`,
+          amount: `${from} ${swapFromToken.value}`,
+          value: '~' + swapToAmount.value,
+          time: 'just now', status: 'confirmed'
+        });
+        renderTxs();
+      });
+
+      stakeDeposit.addEventListener('click', () => {
+        const amt = parseFloat(stakeAmount.value);
+        if (!amt || amt <= 0) { showToast('Enter a valid amount'); return; }
+        if (amt > state.wallet.eth) { showToast('Insufficient ETH balance'); return; }
+        state.wallet.eth -= amt;
+        state.stakeBalance += amt;
+        state.txs.unshift({ type: 'stake', asset: 'ETH', amount: `${amt.toFixed(4)} ETH`, value: '$' + (amt * state.prices.eth).toFixed(2), time: 'just now', status: 'confirmed' });
+        updateUI();
+        showToast(`Staked ${amt.toFixed(4)} ETH`);
+      });
+
+      stakeWithdraw.addEventListener('click', () => {
+        const amt = parseFloat(stakeAmount.value);
+        if (!amt || amt <= 0) { showToast('Enter a valid amount'); return; }
+        if (amt > state.stakeBalance) { showToast('Not enough staked ETH'); return; }
+        state.stakeBalance -= amt;
+        state.wallet.eth += amt;
+        state.txs.unshift({ type: 'unstake', asset: 'ETH', amount: `${amt.toFixed(4)} ETH`, value: '$' + (amt * state.prices.eth).toFixed(2), time: 'just now', status: 'pending
+<script>/*! Xroga Live AI — free endpoints first; BYOK via Xroga Integrations */
+(function (global) {
+  'use strict';
+  var X = global.XrogaLiveAi || {};
+
+  function pollinationsChat(messages, system) {
+    var last = '';
+    for (var i = messages.length - 1; i >= 0; i--) {
+      if (messages[i] && messages[i].role === 'user') { last = String(messages[i].content || ''); break; }
+    }
+    var prompt = (system ? system + '
+
+' : '') + last;
+    var url = 'https://text.pollinations.ai/' + encodeURIComponent(prompt.slice(0, 1800)) + '?model=openai';
+    return fetch(url, { method: 'GET' }).then(function (r) {
+      if (!r.ok) throw new Error('Pollinations ' + r.status);
+      return r.text();
+    }).then(function (t) { return (t || '').trim() || 'No reply — try again.'; });
+  }
+
+  function imageUrl(prompt, w, h) {
+    var width = w || 1024, height = h || 576;
+    return 'https://image.pollinations.ai/prompt/' + encodeURIComponent(String(prompt || 'abstract').slice(0, 400))
+      + '?width=' + width + '&height=' + height + '&nologo=true';
+  }
+
+  /** Optional: call Xroga account proxy when page is opened inside Xroga (cookie auth). */
+  function xrogaProxyChat(messages, system) {
+    var body = JSON.stringify({ messages: messages, system: system || '' });
+    return fetch('/api/integrations/live-ai/chat', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: body,
+    }).then(function (r) {
+      if (!r.ok) throw new Error('proxy ' + r.status);
+      return r.json();
+    }).then(function (j) { return String(j.reply || j.content || ''); });
+  }
+
+  function xrogaProxySearch(query) {
+    return fetch('/api/integrations/live-ai/search', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query, maxResults: 5 }),
+    }).then(function (r) {
+      if (!r.ok) throw new Error('search ' + r.status);
+      return r.json();
+    }).then(function (j) { return j.results || []; });
+  }
+
+  X.chat = function (messages, opts) {
+    opts = opts || {};
+    var system = opts.system || 'You are a helpful assistant inside a website built with Xroga.';
+    // Prefer free Pollinations so GitHub/Vercel previews work with zero keys.
+    // If Xroga proxy is available (same-origin dashboard preview), try it first for BYOK quality.
+    var tryProxy = opts.preferXrogaProxy !== false && typeof location !== 'undefined'
+      && /xroga\.(com|dev|localhost)/i.test(location.hostname || '');
+    if (tryProxy) {
+      return xrogaProxyChat(messages, system).catch(function () {
+        return pollinationsChat(messages, system);
+      });
+    }
+    return pollinationsChat(messages, system);
+  };
+
+  X.imageUrl = imageUrl;
+
+  X.search = function (query) {
+    var tryProxy = typeof location !== 'undefined'
+      && /xroga\.(com|dev|localhost)/i.test(location.hostname || '');
+    if (tryProxy) {
+      return xrogaProxySearch(query).catch(function () { return []; });
+    }
+    // Public DuckDuckGo Instant Answer (limited, no key)
+    return fetch('https://api.duckduckgo.com/?q=' + encodeURIComponent(query) + '&format=json&no_redirect=1&no_html=1')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var out = [];
+        if (data.AbstractText) {
+          out.push({ title: data.Heading || 'Result', url: data.AbstractURL || '#', snippet: data.AbstractText });
+        }
+        (data.RelatedTopics || []).slice(0, 4).forEach(function (t) {
+          if (t.Text && t.FirstURL) out.push({ title: t.Text.slice(0, 80), url: t.FirstURL, snippet: t.Text });
+        });
+        return out;
+      })
+      .catch(function () { return []; });
+  };
+
+  X.speak = function (text) {
+    if (!global.speechSynthesis) return;
+    var u = new SpeechSynthesisUtterance(String(text || ''));
+    global.speechSynthesis.speak(u);
+  };
+
+  /** Live crypto prices — CoinGecko free, no API key */
+  X.cryptoPrices = function (ids) {
+    var list = (ids && ids.length ? ids : ['bitcoin', 'ethereum', 'solana', 'arbitrum']).join(',');
+    var url = 'https://api.coingecko.com/api/v3/simple/price?ids=' + encodeURIComponent(list)
+      + '&vs_currencies=usd&include_24hr_change=true';
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error('CoinGecko ' + r.status);
+      return r.json();
+    });
+  };
+
+  X.cryptoMarkets = function (n) {
+    var url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page='
+      + (n || 8) + '&page=1&sparkline=false';
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error('CoinGecko markets ' + r.status);
+      return r.json();
+    });
+  };
+
+  /** Open-Meteo weather — no key */
+  X.weather = function (lat, lon) {
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + (lat || 40.71)
+      + '&longitude=' + (lon || -74.01) + '&current_weather=true';
+    return fetch(url).then(function (r) { return r.json(); });
+  };
+
+  /** Frankfurter FX — no key */
+  X.fxRates = function (base) {
+    return fetch('https://api.frankfurter.app/latest?from=' + encodeURIComponent(base || 'USD'))
+      .then(function (r) { return r.json(); });
+  };
+
+  global.XrogaLiveAi = X;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+
+/*! Xroga Live AI — free endpoints first; BYOK via Xroga Integrations */
+(function (global) {
+  'use strict';
+  var X = global.XrogaLiveAi || {};
+
+  function pollinationsChat(messages, system) {
+    var last = '';
+    for (var i = messages.length - 1; i >= 0; i--) {
+      if (messages[i] && messages[i].role === 'user') { last = String(messages[i].content || ''); break; }
+    }
+    var prompt = (system ? system + '
+
+' : '') + last;
+    var url = 'https://text.pollinations.ai/' + encodeURIComponent(prompt.slice(0, 1800)) + '?model=openai';
+    return fetch(url, { method: 'GET' }).then(function (r) {
+      if (!r.ok) throw new Error('Pollinations ' + r.status);
+      return r.text();
+    }).then(function (t) { return (t || '').trim() || 'No reply — try again.'; });
+  }
+
+  function imageUrl(prompt, w, h) {
+    var width = w || 1024, height = h || 576;
+    return 'https://image.pollinations.ai/prompt/' + encodeURIComponent(String(prompt || 'abstract').slice(0, 400))
+      + '?width=' + width + '&height=' + height + '&nologo=true';
+  }
+
+  /** Optional: call Xroga account proxy when page is opened inside Xroga (cookie auth). */
+  function xrogaProxyChat(messages, system) {
+    var body = JSON.stringify({ messages: messages, system: system || '' });
+    return fetch('/api/integrations/live-ai/chat', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: body,
+    }).then(function (r) {
+      if (!r.ok) throw new Error('proxy ' + r.status);
+      return r.json();
+    }).then(function (j) { return String(j.reply || j.content || ''); });
+  }
+
+  function xrogaProxySearch(query) {
+    return fetch('/api/integrations/live-ai/search', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: query, maxResults: 5 }),
+    }).then(function (r) {
+      if (!r.ok) throw new Error('search ' + r.status);
+      return r.json();
+    }).then(function (j) { return j.results || []; });
+  }
+
+  X.chat = function (messages, opts) {
+    opts = opts || {};
+    var system = opts.system || 'You are a helpful assistant inside a website built with Xroga.';
+    // Prefer free Pollinations so GitHub/Vercel previews work with zero keys.
+    // If Xroga proxy is available (same-origin dashboard preview), try it first for BYOK quality.
+    var tryProxy = opts.preferXrogaProxy !== false && typeof location !== 'undefined'
+      && /xroga\.(com|dev|localhost)/i.test(location.hostname || '');
+    if (tryProxy) {
+      return xrogaProxyChat(messages, system).catch(function () {
+        return pollinationsChat(messages, system);
+      });
+    }
+    return pollinationsChat(messages, system);
+  };
+
+  X.imageUrl = imageUrl;
+
+  X.search = function (query) {
+    var tryProxy = typeof location !== 'undefined'
+      && /xroga\.(com|dev|localhost)/i.test(location.hostname || '');
+    if (tryProxy) {
+      return xrogaProxySearch(query).catch(function () { return []; });
+    }
+    // Public DuckDuckGo Instant Answer (limited, no key)
+    return fetch('https://api.duckduckgo.com/?q=' + encodeURIComponent(query) + '&format=json&no_redirect=1&no_html=1')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var out = [];
+        if (data.AbstractText) {
+          out.push({ title: data.Heading || 'Result', url: data.AbstractURL || '#', snippet: data.AbstractText });
+        }
+        (data.RelatedTopics || []).slice(0, 4).forEach(function (t) {
+          if (t.Text && t.FirstURL) out.push({ title: t.Text.slice(0, 80), url: t.FirstURL, snippet: t.Text });
+        });
+        return out;
+      })
+      .catch(function () { return []; });
+  };
+
+  X.speak = function (text) {
+    if (!global.speechSynthesis) return;
+    var u = new SpeechSynthesisUtterance(String(text || ''));
+    global.speechSynthesis.speak(u);
+  };
+
+  /** Live crypto prices — CoinGecko free, no API key */
+  X.cryptoPrices = function (ids) {
+    var list = (ids && ids.length ? ids : ['bitcoin', 'ethereum', 'solana', 'arbitrum']).join(',');
+    var url = 'https://api.coingecko.com/api/v3/simple/price?ids=' + encodeURIComponent(list)
+      + '&vs_currencies=usd&include_24hr_change=true';
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error('CoinGecko ' + r.status);
+      return r.json();
+    });
+  };
+
+  X.cryptoMarkets = function (n) {
+    var url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page='
+      + (n || 8) + '&page=1&sparkline=false';
+    return fetch(url).then(function (r) {
+      if (!r.ok) throw new Error('CoinGecko markets ' + r.status);
+      return r.json();
+    });
+  };
+
+  /** Open-Meteo weather — no key */
+  X.weather = function (lat, lon) {
+    var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + (lat || 40.71)
+      + '&longitude=' + (lon || -74.01) + '&current_weather=true';
+    return fetch(url).then(function (r) { return r.json(); });
+  };
+
+  /** Frankfurter FX — no key */
+  X.fxRates = function (base) {
+    return fetch('https://api.frankfurter.app/latest?from=' + encodeURIComponent(base || 'USD'))
+      .then(function (r) { return r.json(); });
+  };
+
+  global.XrogaLiveAi = X;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+
+
+
+
+(async function xrogaLiveCrypto() {
+  if (!window.XrogaLiveAi?.cryptoPrices) return;
+  try {
+    const data = await window.XrogaLiveAi.cryptoPrices(['bitcoin','ethereum','solana','arbitrum']);
+    const map = { bitcoin: 'BTC', ethereum: 'ETH', solana: 'SOL', arbitrum: 'ARB' };
+    const tbody = document.querySelector('#markets tbody') || document.querySelector('.table tbody');
+    if (tbody) {
+      tbody.innerHTML = Object.keys(map).map((id) => {
+        const row = data[id]; if (!row) return '';
+        const ch = Number(row.usd_24h_change || 0);
+        const cls = ch >= 0 ? 'up' : 'down';
+        return '<tr><td><strong>' + map[id] + '</strong></td><td>$' + Number(row.usd).toLocaleString(undefined,{maximumFractionDigits:2}) + '</td><td class="' + cls + '">' + (ch>=0?'+':'') + ch.toFixed(2) + '%</td></tr>';
+      }).join('');
+    }
+    const btc = data.bitcoin?.usd;
+    const kpi = document.querySelector('.kpi strong');
+    if (kpi && btc) kpi.textContent = '$' + Number(btc).toLocaleString(undefined,{maximumFractionDigits:0});
+    document.querySelectorAll('[data-live-price]').forEach((el) => {
+      const id = el.getAttribute('data-live-price');
+      if (id && data[id]?.usd != null) el.textContent = '$' + Number(data[id].usd).toLocaleString();
+    });
+  } catch (e) { console.warn('[XrogaLiveAi] crypto prices', e); }
+})();
+
+
+(async function xrogaLiveCrypto() {
+  if (!window.XrogaLiveAi?.cryptoPrices) return;
+  try {
+    const data = await window.XrogaLiveAi.cryptoPrices(['bitcoin','ethereum','solana','arbitrum']);
+    const map = { bitcoin: 'BTC', ethereum: 'ETH', solana: 'SOL', arbitrum: 'ARB' };
+    const tbody = document.querySelector('#markets tbody') || document.querySelector('.table tbody');
+    if (tbody) {
+      tbody.innerHTML = Object.keys(map).map((id) => {
+        const row = data[id]; if (!row) return '';
+        const ch = Number(row.usd_24h_change || 0);
+        const cls = ch >= 0 ? 'up' : 'down';
+        return '<tr><td><strong>' + map[id] + '</strong></td><td>$' + Number(row.usd).toLocaleString(undefined,{maximumFractionDigits:2}) + '</td><td class="' + cls + '">' + (ch>=0?'+':'') + ch.toFixed(2) + '%</td></tr>';
+      }).join('');
+    }
+    const btc = data.bitcoin?.usd;
+    const kpi = document.querySelector('.kpi strong');
+    if (kpi && btc) kpi.textContent = '$' + Number(btc).toLocaleString(undefined,{maximumFractionDigits:0});
+    document.querySelectorAll('[data-live-price]').forEach((el) => {
+      const id = el.getAttribute('data-live-price');
+      if (id && data[id]?.usd != null) el.textContent = '$' + Number(data[id].usd).toLocaleString();
+    });
+  } catch (e) { console.warn('[XrogaLiveAi] crypto prices', e); }
+})();</script>
+</body>
+</html>
