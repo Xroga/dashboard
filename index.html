@@ -325,12 +325,12 @@ l
  function setTheme(mode) {
  html.setAttribute('data-theme', mode);
  localStorage.setItem('theme', mode);
- const icon = btn.querySelector('i');
- if (icon) {
- icon.setAttribute('data-lucide', mode === 'dark' ? 'moon' : 'sun');
+ // Replace the icon element inside the button with a fresh <i>
+ // because Lucide previously converted it to an <svg>
+ const iconName = mode === 'dark' ? 'moon' : 'sun';
+ btn.innerHTML = '<i data-lucide="' + iconName + '" width="18" height="18"></i>';
  if (window.lucide) {
  lucide.createIcons();
- }
  }
  }
 
